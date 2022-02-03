@@ -11,7 +11,16 @@ const Login = () => {
 
   const navigate = useNavigate();
 
-  const onRegister = (e: React.FormEvent<HTMLFormElement>) => {
+  const onLogin = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (email === '' || password === '') {
+      alert('Invalid credentials');
+      setPassword('');
+      setConfirmPassword('');
+    }
+  }
+
+  const onCreateAccount = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (email === '' || username === '' || password === '' ||
         confirmPassword === '' || password !== confirmPassword) {
@@ -24,7 +33,31 @@ const Login = () => {
 
   return (
     <div className='login'>
-      <form className='login-form' onSubmit={onRegister}>
+      <div className='login-header'>
+        <h2>{'Login/Create an Account'}</h2>
+      </div>
+      <form className='login-form' onSubmit={onLogin}>
+        <label className='login-form-label'>
+          {'Email: '}
+          <input
+            type='text'
+            name='email'
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </label>
+        <label className='login-form-label'>
+          {'Password: '}
+          <input
+            type='password'
+            name='password'
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </label>
+        <input type='submit' value='Login' />
+      </form>
+      <form className='login-form' onSubmit={onCreateAccount}>
         <label className='login-form-label'>
           {'Email: '}
           <input
@@ -61,7 +94,7 @@ const Login = () => {
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
         </label>
-        <input type='submit' value='Register' />
+        <input type='submit' value='Create Account' />
       </form>
       <button onClick={() => {navigate('../guest')}}>
         {'Continue as Guest'}
