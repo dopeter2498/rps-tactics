@@ -1,5 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  UserCredential
+} from 'firebase/auth';
+import {
+  collection,
+  CollectionReference,
+  doc,
+  getDocs,
+  setDoc,
+  query,
+  where
+} from 'firebase/firestore';
+
+import { auth, db } from '../services/firebase';
 
 import '../styles/Login.css';
 
@@ -11,23 +27,61 @@ const Login = () => {
 
   const navigate = useNavigate();
 
-  const onLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const onLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (email === '' || password === '') {
       alert('Invalid credentials');
       setPassword('');
       setConfirmPassword('');
+      return;
+    }
+    try {
+      const user: UserCredential | undefined
+        = await signInWithEmailAndPassword(auth, email, password);
+      navigate('../rps');
+    } catch (err) {
+      alert('Unable to login. Invalid credentials');
+      if (err instanceof Error) {
+        console.error(err.message);
+      }
     }
   }
 
-  const onCreateAccount = (e: React.FormEvent<HTMLFormElement>) => {
+  const onCreateAccount = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (email === '' || username === '' || password === '' ||
-        confirmPassword === '' || password !== confirmPassword) {
+    const regex = /^([a-z])+([0-9a-z]*)$/i;
+    if (email === '' || username === '' || !username.match(regex) ||
+      password === '' || confirmPassword === '' ||
+      password !== confirmPassword) {
       alert('Invalid credentials');
       setPassword('');
       setConfirmPassword('');
       return;
+    }
+    try {
+      const UsersRef: CollectionReference = collection(db, 'Users');
+      const q = query(UsersRef, where('username', '==', username));
+      const querySnapshot = await getDocs(q);
+      if (querySnapshot.empty !== true) {
+        alert('Invalid username');
+        setPassword('');
+        setConfirmPassword('');
+        return;
+      }
+      const user: UserCredential | undefined
+        = await createUserWithEmailAndPassword(auth, email, password);
+      await setDoc(doc(db, "Users", auth.currentUser!.uid), {
+        username: username,
+        wins: 0,
+      });
+      navigate('../rps');
+    } catch (err) {
+      alert('Unable to create Account');
+      setPassword('');
+      setConfirmPassword('');
+      if (err instanceof Error) {
+        console.error(err.message);
+      }
     }
   }
 
@@ -96,7 +150,7 @@ const Login = () => {
         </label>
         <input type='submit' value='Create Account' />
       </form>
-      <button onClick={() => {navigate('../guest')}}>
+      <button onClick={() => { navigate('../rps') }}>
         {'Continue as Guest'}
       </button>
     </div>
