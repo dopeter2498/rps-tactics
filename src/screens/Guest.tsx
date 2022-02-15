@@ -15,6 +15,7 @@ const Guest = () => {
 
   const onContinue = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    navigate('../rps');
   }
   return (
     <Container component='main' maxWidth='sm'>
