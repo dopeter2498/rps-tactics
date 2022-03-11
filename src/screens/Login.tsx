@@ -1,7 +1,29 @@
 import { useState } from 'react';
+import Button from '@mui/material/Button';
+import CssBaseline from '@mui/material/CssBaseline';
+import TextField from '@mui/material/TextField';
+import Link from '@mui/material/Link';
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
 import { useNavigate } from 'react-router-dom';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  UserCredential
+} from 'firebase/auth';
+import {
+  collection,
+  CollectionReference,
+  doc,
+  getDocs,
+  setDoc,
+  query,
+  where
+} from 'firebase/firestore';
 
-import '../styles/Login.css';
+import { auth, db } from '../services/firebase';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -11,95 +33,200 @@ const Login = () => {
 
   const navigate = useNavigate();
 
-  const onLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const onLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (email === '' || password === '') {
       alert('Invalid credentials');
       setPassword('');
       setConfirmPassword('');
+      return;
+    }
+    try {
+      const user: UserCredential | undefined
+        = await signInWithEmailAndPassword(auth, email, password);
+      navigate('../rps');
+    } catch (err) {
+      alert('Unable to login. Invalid credentials');
+      if (err instanceof Error) {
+        console.error(err.message);
+      }
     }
   }
 
-  const onCreateAccount = (e: React.FormEvent<HTMLFormElement>) => {
+  const onCreateAccount = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (email === '' || username === '' || password === '' ||
-        confirmPassword === '' || password !== confirmPassword) {
+    const regex = /^([a-z])+([0-9a-z]*)$/i;
+    if (email === '' || username === '' || !username.match(regex) ||
+      password === '' || confirmPassword === '' ||
+      password !== confirmPassword) {
       alert('Invalid credentials');
       setPassword('');
       setConfirmPassword('');
       return;
     }
+    try {
+      const UsersRef: CollectionReference = collection(db, 'Users');
+      const q = query(UsersRef, where('username', '==', username));
+      const querySnapshot = await getDocs(q);
+      if (querySnapshot.empty !== true) {
+        alert('Invalid username');
+        setPassword('');
+        setConfirmPassword('');
+        return;
+      }
+      const user: UserCredential | undefined
+        = await createUserWithEmailAndPassword(auth, email, password);
+      await setDoc(doc(db, 'Users', auth.currentUser!.uid), {
+        username: username,
+        wins: 0,
+      });
+      navigate('../rps');
+    } catch (err) {
+      alert('Unable to create Account');
+      setPassword('');
+      setConfirmPassword('');
+      if (err instanceof Error) {
+        console.error(err.message);
+      }
+    }
   }
 
   return (
-    <div className='login'>
-      <div className='login-header'>
-        <h2>{'Login/Create an Account'}</h2>
-      </div>
-      <form className='login-form' onSubmit={onLogin}>
-        <label className='login-form-label'>
-          {'Email: '}
-          <input
-            type='text'
-            name='email'
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </label>
-        <label className='login-form-label'>
-          {'Password: '}
-          <input
-            type='password'
-            name='password'
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </label>
-        <input type='submit' value='Login' />
-      </form>
-      <form className='login-form' onSubmit={onCreateAccount}>
-        <label className='login-form-label'>
-          {'Email: '}
-          <input
-            type='text'
-            name='email'
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </label>
-        <label className='login-form-label'>
-          {'Username: '}
-          <input
-            type='text'
-            name='username'
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </label>
-        <label className='login-form-label'>
-          {'Password: '}
-          <input
-            type='password'
-            name='password'
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </label>
-        <label className='login-form-label'>
-          {'Confirm Password: '}
-          <input
-            type='password'
-            name='confirmPassword'
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-        </label>
-        <input type='submit' value='Create Account' />
-      </form>
-      <button onClick={() => {navigate('../guest')}}>
-        {'Continue as Guest'}
-      </button>
-    </div>
+    <Container component='main' maxWidth='md'>
+      <CssBaseline />
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          mt: 8,
+        }}
+      >
+        <Typography
+          component='h1'
+          variant='h5'
+          style={{
+            fontWeight: 'bold',
+            whiteSpace: 'pre-line',
+            textAlign: 'center'
+          }}
+        >
+          {'RPS Tactics'}
+        </Typography>
+        <Box
+          sx={{
+            flexDirection: 'row',
+            mt: 5
+          }}
+        >
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Typography component='h1' variant='h6'>
+                {'Create an Account'}
+              </Typography>
+              <Box component='form' onSubmit={onCreateAccount} sx={{ mt: 1 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField
+                      required
+                      fullWidth
+                      label='Email'
+                      autoComplete='email'
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      required
+                      fullWidth
+                      label='Username'
+                      value={username}
+                      onChange={e => setUsername(e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      required
+                      fullWidth
+                      label='Password'
+                      type='password'
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      autoComplete='new-password'
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      required
+                      fullWidth
+                      label='Confim Password'
+                      type='password'
+                      value={confirmPassword}
+                      onChange={e => setConfirmPassword(e.target.value)}
+                    />
+                  </Grid>
+                </Grid>
+                <Button
+                  type='submit'
+                  fullWidth
+                  variant='contained'
+                  sx={{ my: 2 }}
+                >
+                  {'Create Account'}
+                </Button>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={6} style={{ alignSelf: 'center' }}>
+              <Typography component='h1' variant='h6'>
+                {'Login'}
+              </Typography>
+              <Box component='form' onSubmit={onLogin} sx={{ mt: 1 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField
+                      required
+                      fullWidth
+                      label='Email'
+                      autoComplete='email'
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      required
+                      fullWidth
+                      label='Password'
+                      type='password'
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      autoComplete='new-password'
+                    />
+                  </Grid>
+                </Grid>
+                <Button
+                  type='submit'
+                  fullWidth
+                  variant='contained'
+                  sx={{ my: 2 }}
+                >
+                  {'Login'}
+                </Button>
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
+        <Link
+          component='button'
+          onClick={() => navigate('../guest')}
+        >
+          <Typography style={{ cursor: 'pointer' }}>
+            {'Continue as Guest'}
+          </Typography>
+        </Link>
+      </Box>
+    </Container>
   );
 }
 
