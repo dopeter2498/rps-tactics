@@ -9,13 +9,19 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 
+import { useUserContext } from '../components/UserContext';
+import { useSocket } from '../components/SocketContext';
+
 const Guest = () => {
   const [username, setUsername] = useState('');
   const navigate = useNavigate();
+  const userContext = useUserContext();
+  const socket = useSocket();
 
   const onContinue = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    navigate('../rps');
+    userContext.username = username;
+    navigate('../user');
   }
   return (
     <Container component='main' maxWidth='sm'>

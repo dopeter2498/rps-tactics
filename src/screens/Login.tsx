@@ -24,6 +24,7 @@ import {
 } from 'firebase/firestore';
 
 import { auth, db } from '../services/firebase';
+import { useUserContext } from '../components/UserContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -31,6 +32,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const userContext = useUserContext();
   const navigate = useNavigate();
 
   const onLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -44,7 +46,15 @@ const Login = () => {
     try {
       const user: UserCredential | undefined
         = await signInWithEmailAndPassword(auth, email, password);
-      navigate('../rps');
+      const uid = user.user.uid;
+      const UsersRef = collection(db, 'Users');
+      const q = query(UsersRef, where('__name__', '==', uid));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        userContext.username = doc.data().username;
+      });
+      userContext.user = user.user;
+      navigate('../user');
     } catch (err) {
       alert('Unable to login. Invalid credentials');
       if (err instanceof Error) {
@@ -80,7 +90,8 @@ const Login = () => {
         username: username,
         wins: 0,
       });
-      navigate('../rps');
+      userContext.user = user.user;
+      navigate('../user');
     } catch (err) {
       alert('Unable to create Account');
       setPassword('');
