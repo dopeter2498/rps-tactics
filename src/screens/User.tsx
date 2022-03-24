@@ -40,7 +40,7 @@ const User = () => {
           sx={{ my: 2 }}
           onClick={() => {
             socket.emit('joinLobby', userContext.username!);
-            navigate('../rps');
+            navigate('../lobby');
           }}
         >
           {'Play'}
