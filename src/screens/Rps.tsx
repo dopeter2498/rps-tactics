@@ -1,124 +1,74 @@
-// import '../styles/Rps.css';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Container, ButtonGroup, Button, Box } from '@mui/material';
-import ContentCutTwoToneIcon from '@mui/icons-material/ContentCutTwoTone';
-import ArticleRoundedIcon from '@mui/icons-material/ArticleRounded';
-import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Container from '@mui/material/Container';
+import CssBaseline from '@mui/material/CssBaseline';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
 
 import { Player } from '../Game/types';
 import socket from '../components/socket';
 import { useUserContext } from '../components/UserContext';
 
-import PlayerCard from '../components/PlayerCard';
+interface PlayerGameCardProps {
+  player: Player;
+}
+
+const PlayerGameCard = ({ player }: PlayerGameCardProps) => {
+  return (
+    <Box m={3}>
+      <Card>
+        <CardContent>
+          <Typography>
+            {player.username}
+            {` | HP: ${player.healthPoints}`}
+          </Typography>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+}
 
 const Rps = () => {
   const currSocket = socket;
   const userContext = useUserContext();
-  const navigate = useNavigate();
 
+  const [round, setRound] = useState(0);
   const [currPlayers, setCurrPlayers] = useState<Player[]>([]);
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    socket.emit('getLobby');
     currSocket.on('updateLobby', (players) => {
       userContext.player = players.find((element) => {
         return currSocket.id === element.socketId;
       })!;
       setCurrPlayers(players);
-      console.log(userContext.player);
     });
-
-    currSocket.on('startGame', () => {
-      navigate('../game');
-    });
+    currSocket.emit('getLobby');
+    return () => {
+      currSocket.removeAllListeners('updateLobby');
+    };
   }, []);
 
-
   return (
-    <Container fixed sx={{ borderRadius: 9, backgroundColor: 'white' }}>
-      <div>
-        <h1> RPS Tactics! </h1>
-      </div>
-      {false ?
-        <Box textAlign='center' sx={{ backgroundColor: 'white' }}>
-          {/*
-          <ButtonGroup variant="contained" aria-label="outlined primary button group">
-            <Button
-              startIcon={<CircleOutlinedIcon sx={{ fontSize: 40 }} />}
-              onClick={() => currSocket.emit('playerChoice', 'rock')}
-            >
-            </Button>
-            <Button
-              startIcon={<ArticleRoundedIcon />}
-              onClick={() => currSocket.emit('playerChoice', 'paper')}
-            >
-            </Button>
-            <Button
-              startIcon={<ContentCutTwoToneIcon />}
-              onClick={() => currSocket.emit('playerChoice', 'scissor')}
-            >
-            </Button>
-          </ButtonGroup>
-        */}
-          <ul>
-            {currPlayers.map((player, index) => {
-              return (
-                <PlayerCard key={`currPlayer-${index}`} player={player} />
-              );
-            })}
-          </ul>
-        </Box> :
-
-        <Box>
-          <ul>
-            {currPlayers.map((player, index) => {
-              return (
-                <PlayerCard key={`currPlayer-${index}`} player={player} />
-              );
-            })}
-          </ul>
-          {'Lobby'}
-          {!ready ?
-            <Button
-              variant='contained'
-              onClick={() => {
-                currSocket.emit('toggleReady');
-                setReady(true);
-              }}
-              sx={{m: 1}}
-            >
-              {'Ready'}
-            </Button>
-            :
-            <Button
-              variant='contained'
-              onClick={() => {
-                currSocket.emit('toggleReady');
-                setReady(false);
-              }}
-              sx={{m: 1}}
-            >
-              {'Unready'}
-            </Button>
-          }
-          {userContext.player.leader ?
-            <Button
-              variant='contained'
-              onClick={() => {
-                currSocket.emit('toggleReady');
-                setReady(true);
-              }}
-              sx={{m: 1}}
-            >
-              {'Start Game'}
-            </Button>
-            :
-            ''
-          }
-        </Box>
-      }
+    <Container>
+      <CssBaseline />
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={9}>
+          {'Curr Round'}
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Typography m={3}>
+            {'Players:'}
+          </Typography>
+          {currPlayers.map((player, num) => {
+            return (
+              <PlayerGameCard key={`player-card-${num}`} player={player} />
+            );
+          })}
+        </Grid>
+      </Grid>
     </Container>
   );
 }

@@ -19,7 +19,6 @@ const Lobby = () => {
   const [currPlayers, setCurrPlayers] = useState<Player[]>([]);
 
   useEffect(() => {
-    currSocket.emit('getLobby');
     currSocket.on('updateLobby', (players) => {
       userContext.player = players.find((element) => {
         return currSocket.id === element.socketId;
@@ -32,6 +31,12 @@ const Lobby = () => {
     currSocket.on('disconnect', () => {
       currSocket.emit('getLobby');
     });
+    currSocket.emit('getLobby');
+    return () => {
+      currSocket.removeAllListeners('updateLobby');
+      currSocket.removeAllListeners('startGame');
+      currSocket.removeAllListeners('disconnect');
+    };
   }, []);
 
 
