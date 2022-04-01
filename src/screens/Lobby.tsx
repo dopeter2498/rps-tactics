@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Button, Box } from '@mui/material';
+import CssBaseline from '@mui/material/CssBaseline';
 import Typography from '@mui/material/Typography';
 
 import { Player } from '../Game/types';
@@ -38,7 +39,8 @@ const Lobby = () => {
   }, []);
 
   return (
-    <Container fixed sx={{ borderRadius: 9, backgroundColor: 'white' }}>
+    <Container fixed>
+      <CssBaseline />
       <Typography variant='h4'>{'RPS Tactics!'}</Typography>
       <Box>
         <ul>

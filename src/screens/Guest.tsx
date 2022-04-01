@@ -22,7 +22,7 @@ const Guest = () => {
     e.preventDefault();
     userContext.username = username;
     navigate('../user');
-  }
+  };
   return (
     <Container component='main' maxWidth='sm'>
       <CssBaseline />
@@ -40,7 +40,7 @@ const Guest = () => {
           style={{
             fontWeight: 'bold',
             whiteSpace: 'pre-line',
-            textAlign: 'center'
+            textAlign: 'center',
           }}
         >
           {'RPS Tactics'}
@@ -58,7 +58,7 @@ const Guest = () => {
                     fullWidth
                     label='Username'
                     value={username}
-                    onChange={e => setUsername(e.target.value)}
+                    onChange={(e) => setUsername(e.target.value)}
                   />
                 </Grid>
               </Grid>
@@ -73,10 +73,7 @@ const Guest = () => {
             </Box>
           </Grid>
         </Grid>
-        <Link
-          component='button'
-          onClick={() => navigate('../login')}
-        >
+        <Link component='button' onClick={() => navigate('../login')}>
           <Typography style={{ cursor: 'pointer' }}>
             {'Create an Account or Login'}
           </Typography>
@@ -84,6 +81,6 @@ const Guest = () => {
       </Box>
     </Container>
   );
-}
+};
 
 export default Guest;

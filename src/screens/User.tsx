@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
+import CssBaseline from '@mui/material/CssBaseline';
 import Typography from '@mui/material/Typography';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,6 +14,7 @@ const User = () => {
 
   return (
     <Container maxWidth='md'>
+      <CssBaseline />
       <Box
         sx={{
           display: 'flex',
@@ -26,13 +28,14 @@ const User = () => {
           style={{
             fontWeight: 'bold',
             whiteSpace: 'pre-line',
-            textAlign: 'center'
+            textAlign: 'center',
           }}
         >
           {'RPS Tactics'}
         </Typography>
         <Typography>
-          {userContext.user !== undefined ? `User: ${userContext.username}`
+          {userContext.user !== undefined
+            ? `User: ${userContext.username}`
             : `Guest: ${userContext.username}`}
         </Typography>
         <Button
@@ -48,6 +51,6 @@ const User = () => {
       </Box>
     </Container>
   );
-}
+};
 
 export default User;

@@ -1,4 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
+import createTheme from '@mui/material/styles/createTheme';
+import ThemeProvider from '@mui/material/styles/ThemeProvider';
 
 import UserContextProvider from './components/UserContext';
 
@@ -8,8 +10,15 @@ import User from './screens/User';
 import Lobby from './screens/Lobby';
 import Rps from './screens/Rps';
 
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+  },
+});
+
 const App = () => {
   return (
+    <ThemeProvider theme={darkTheme}>
     <UserContextProvider>
       <Routes>
         <Route path='/' element={<Login />} />
@@ -20,6 +29,7 @@ const App = () => {
         <Route path='/rps' element={<Rps />} />
       </Routes>
     </UserContextProvider>
+    </ThemeProvider>
   );
 }
 
