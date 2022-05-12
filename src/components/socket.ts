@@ -3,6 +3,8 @@ import { io, Socket } from 'socket.io-client';
 import { Player } from '../Game/types';
 
 export interface ServerToClientEvents {
+  checkWinner: () => void;
+  newRound: () => void;
   sendGameInfo: (data: string) => void;
   startGame: () => void;
   updateLobby: (players: Player[]) => void;

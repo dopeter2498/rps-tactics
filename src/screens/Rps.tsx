@@ -40,28 +40,38 @@ const Rps = () => {
   const currSocket = socket;
   const userContext = useUserContext();
 
-  const [round, setRound] = useState(0);
+  const [round, setRound] = useState<number | undefined>(0);
   const [choice, setChoice] = useState('');
+  const [hp, setHp] = useState<number | undefined>(undefined);
   const [currPlayers, setCurrPlayers] = useState<Player[]>([]);
 
   useEffect(() => {
     currSocket.on('updateLobby', (players) => {
-      userContext.player = players.find((element) => {
-        return currSocket.id === element.socketId;
-      })!;
+      userContext.player = players.find(
+        (element) => currSocket.id === element.socketId
+      )!;
+      setHp(userContext.player.healthPoints!);
       setCurrPlayers(players);
+      setChoice('');
       console.table(players);
+    });
+    currSocket.on('newRound', () => {
+      setRound(round! + 1);
+    });
+    currSocket.on('checkWinner', () => {
+      setRound(undefined);
     });
     currSocket.emit('getLobby');
     return () => {
       currSocket.removeAllListeners('updateLobby');
+      currSocket.removeAllListeners('checkWinner');
     };
   }, []);
 
   const getOpp = (): string => {
-    const opp = currPlayers.find((player) => {
-      player.opponent === userContext.player.socketId;
-    });
+    const opp = currPlayers.find(
+      (player) => player.opponent === userContext.player.socketId
+    );
     if (opp === undefined) {
       return 'undefined';
     }
@@ -81,7 +91,11 @@ const Rps = () => {
             }}
           >
             <Typography mt={3} variant='h4'>
-              {'Curr Round'}
+              {round != undefined
+                ? `Round ${round}`
+                : hp! === 0
+                ? 'You lost!'
+                : 'You won!'}
             </Typography>
             <Typography m={3}>
               {currPlayers.length > 1 && userContext.player.healthPoints! > 0
@@ -94,6 +108,7 @@ const Rps = () => {
             <ButtonGroup
               variant='contained'
               aria-label='outlined primary button group'
+              disabled={hp === undefined || hp === 0}
             >
               <Button
                 onClick={() => {

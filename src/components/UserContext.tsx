@@ -10,6 +10,7 @@ const defaultPlayer: Player = {
   opponent: undefined,
   ready: false,
   leader: false,
+  choice: undefined,
 };
 
 const UserContext = createContext<UserInfo>({
